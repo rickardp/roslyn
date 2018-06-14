@@ -1263,7 +1263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
                 kind: IsScriptCommandLineParser ? SourceCodeKind.Script : SourceCodeKind.Regular,
-                features: parsedFeatures
+                features: parsedFeatures,
+                customKeywords: ImmutableDictionary<string, SyntaxKind>.Empty
             );
 
             // We want to report diagnostics with source suppression in the error log file.

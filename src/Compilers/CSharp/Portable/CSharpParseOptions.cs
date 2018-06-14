@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpParseOptions Default { get; } = new CSharpParseOptions();
 
         private ImmutableDictionary<string, string> _features;
+        private ImmutableDictionary<string, SyntaxKind> _customKeywords;
 
         /// <summary>
         /// Gets the effective language version, which the compiler uses to select the
@@ -53,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                   documentationMode, 
                   kind,
                   preprocessorSymbols.ToImmutableArrayOrEmpty(),
-                  ImmutableDictionary<string, string>.Empty)
+                  ImmutableDictionary<string, string>.Empty,
+                  ImmutableDictionary<string, SyntaxKind>.Empty)
         {
         }
 
@@ -62,13 +64,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             DocumentationMode documentationMode,
             SourceCodeKind kind,
             ImmutableArray<string> preprocessorSymbols,
-            IReadOnlyDictionary<string, string> features)
+            IReadOnlyDictionary<string, string> features,
+            IReadOnlyDictionary<string, SyntaxKind> customKeywords)
             : base(kind, documentationMode)
         {
             this.SpecifiedLanguageVersion = languageVersion;
             this.LanguageVersion = languageVersion.MapSpecifiedToEffectiveVersion();
             this.PreprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty();
             _features = features?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
+            _customKeywords = customKeywords?.ToImmutableDictionary() ?? ImmutableDictionary<string, SyntaxKind>.Empty;
         }
 
         private CSharpParseOptions(CSharpParseOptions other) : this(
@@ -76,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
             preprocessorSymbols: other.PreprocessorSymbols,
-            features: other.Features)
+            features: other.Features,
+            customKeywords: other.CustomKeywords)
         {
         }
         
@@ -171,6 +176,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _features;
+            }
+        }
+
+        /// <summary>
+        /// Enable some experimental language features for testing.
+        /// </summary>
+        public CSharpParseOptions WithCustomKeywords(IEnumerable<KeyValuePair<string, SyntaxKind>> customKeywords)
+        {
+            ImmutableDictionary<string, SyntaxKind> dictionary =
+                customKeywords?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)
+                ?? ImmutableDictionary<string, SyntaxKind>.Empty;
+
+            return new CSharpParseOptions(this) { _customKeywords = dictionary };
+        }
+
+        public IReadOnlyDictionary<string, SyntaxKind> CustomKeywords
+        {
+            get
+            {
+                return _customKeywords;
             }
         }
 

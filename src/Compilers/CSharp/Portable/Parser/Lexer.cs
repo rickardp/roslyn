@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _options = options;
             _builder = new StringBuilder();
             _identBuffer = new char[32];
-            _cache = new LexerCache();
+            _cache = new LexerCache(options.CustomKeywords);
             _createQuickTokenFunction = this.CreateQuickToken;
             _allowPreprocessorDirectives = allowPreprocessorDirectives;
             _interpolationFollowedByColon = interpolationFollowedByColon;

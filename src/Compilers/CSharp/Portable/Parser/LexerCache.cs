@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -31,13 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly TextKeyedCache<SyntaxTrivia> _triviaMap;
         private readonly TextKeyedCache<SyntaxToken> _tokenMap;
         private readonly CachingIdentityFactory<string, SyntaxKind> _keywordKindMap;
+        private readonly IReadOnlyDictionary<string, SyntaxKind> _customKeywords;
         internal const int MaxKeywordLength = 10;
 
-        internal LexerCache()
+        internal LexerCache(IReadOnlyDictionary<string, SyntaxKind> customKeywords)
         {
             _triviaMap = TextKeyedCache<SyntaxTrivia>.GetInstance();
             _tokenMap = TextKeyedCache<SyntaxToken>.GetInstance();
             _keywordKindMap = s_keywordKindPool.Allocate();
+            _customKeywords = customKeywords;
         }
 
         internal void Free()
@@ -56,7 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             kind = _keywordKindMap.GetOrMakeValue(key);
-            return kind != SyntaxKind.None;
+            if(kind == SyntaxKind.None)
+            {
+                return _customKeywords.TryGetValue(key, out kind);
+            }
+            return true;
         }
 
         internal SyntaxTrivia LookupTrivia(
